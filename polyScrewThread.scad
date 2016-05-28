@@ -146,7 +146,7 @@ module full_thread(ttn,st,sn,zt,lfxy,or,ir)
                           [ir*cos((j+1)*lfxy), ir*sin((j+1)*lfxy), i*st+(j+1)*zt      ],
                           [ir*cos(j*lfxy),     ir*sin(j*lfxy),     i*st+j*zt          ]
                          ],
-               triangles=[
+               faces=[
                           [0,1,2],
                           [5,6,3],[5,3,0],[0,3,1],
                           [3,4,1],[1,4,2],
