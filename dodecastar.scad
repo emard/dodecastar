@@ -148,7 +148,7 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22)
  */
 
       translate([0,0,height*ih/2 * (1-2*id)])
-        thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12,0.5);
+        thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12.4,0.5);
 
     }
   }
@@ -156,6 +156,7 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22)
 }
 
 /* for 3d printing */
+if(1)
 reflector(43);
 
 /* for blender export */
@@ -194,7 +195,7 @@ scale(43,43,43)
  *
  */
 
-
+if(0)
 translate([0,0,38.2])
   rotate([180,0.0])
     hex_screw(12,3,55,6,1.5,1,13,2,0,0);
