@@ -116,10 +116,11 @@ module dodecahedron(height)
 ** ih: interior dodecastar lamp hole factor (0.7) relative to height
 ** id: interior dodecastar cut depth (0.15)
 ** extup: screw hole reinforcement height factor (0.25) relative to height
+** interface 0-none, 1-screw hole, 2-ledstrip pass-thru
 interior dodecastar : ih = 0.7, id = 0.15, extup = 0.25
 interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 */
-module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22)
+module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
 {
   difference()
   {
@@ -129,9 +130,10 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22)
       /* lamp screw hole, reinforced with extruded pentagon
       ** 0.233 is the cut depth of outer dodecastar
       ** 0.1 is the internal dodecastar-hole cut depth */
-      translate([0,0,height*ih/2 * (1-2*id)])
-        rotate([0,0,90])
-          cylinder(h = height*(extup+1-0.233*2-ih*(1-2*id))/2, r = 8, $fa = 360/5, $fs = 0.1);
+      if(interface == 1)
+        translate([0,0,height*ih/2 * (1-2*id)])
+          rotate([0,0,90])
+            cylinder(h = height*(extup+1-0.233*2-ih*(1-2*id))/2, r = 8, $fa = 360/5, $fs = 0.1);
     }
     union()
     {
@@ -147,17 +149,77 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22)
  *                  (quite high res) to minimize overhang issues 
  */
 
-      translate([0,0,height*ih/2 * (1-2*id)])
-        thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12.4,0.5);
-
+      if(interface==1)
+        translate([0,0,height*ih/2 * (1-2*id)])
+          thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12.4,0.5);
+      if(interface==2)
+          rotate([0,0,30])
+          {
+            translate([0,-2,0])
+              cube([9,3,height], center=true);
+            cube([13,1,height], center=true);
+          }
+      if(interface==3)
+          rotate([0,0,30])
+          {
+              translate([0,0,0])
+                cube([9,3,height], center=true);
+          }
     }
   }
 
 }
 
 /* for 3d printing */
+if(0)
+    reflector(height=27, interface=3);
+
+star_angle=atan((1 + sqrt(5)) / 2);
+
 if(1)
-reflector(43);
+    rotate([0,90,0])
+difference()
+{
+  union()
+  {
+    reflector(height=27, interface=0);
+    // see the PCB inside
+    if(0)
+    rotate([star_angle,0,0])
+    rotate([0,90,0])
+    cylinder(d=10,h=1,center=true);
+    // nut for the screw thread
+    rotate([star_angle,0,0])
+    rotate([0,90,0])
+    translate([0,-7,-3])
+    cylinder(d=5.5,h=5,$fn=20,center=true); // plastic 
+  }
+  union()
+  {
+    translate([20,0,0])
+      cube([40,40,40],center=true);
+    rotate([star_angle,0,0])
+      cube([1.8,6,40],center=true);
+    // screw hole with angular head insert
+    rotate([0,90,0])
+      rotate([0,0,star_angle])
+        union()
+        {
+        translate([0,7,0])
+          union()
+          {
+            cylinder(d=3.2, h=13, $fn=20, center=true);
+            translate([0,0,-5.3])
+              cylinder(d1=6, d2=3, h=3/2, $fn=20, center=true);
+            translate([0,0,-11])
+              cylinder(d=6, h=10, $fn=20, center=true);
+          }
+        // hole for the screw thread
+        translate([0,-7,0])
+          cylinder(d=1.6,h=11,$fn=20, center=true);
+      }
+  }
+}
 
 /* for blender export */
 /*
