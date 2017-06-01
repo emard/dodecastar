@@ -122,6 +122,8 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 */
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
 {
+  star_angle=atan((1 + sqrt(5)) / 2);
+  screw=2.2; // screw diameter for interface=3
   difference()
   {
     union()
@@ -160,23 +162,37 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
             cube([13,1,height], center=true);
           }
       if(interface==3)
-          rotate([0,0,30])
+      {
+        // cube to cut off half-star
+        translate([height,0,0])
+          cube([2*height,2*height,2*height], center=true);
+        // cylinder to drill screw thru-hole
+        rotate([0,90,0])
+          rotate([0,0,star_angle])
+          translate([0,height*0.2593,0])
+          union()
           {
-              translate([0,0,0])
-                cube([9,3,height], center=true);
+            // screw hole
+            cylinder(d=screw*1.1, h=height, $fn=20, center=true);
+            // conical screw head
+            translate([0,0,-height*0.20-screw/4])
+            cylinder(d2=screw*1.1,d1=screw*1.1*2,h=screw/2, $fn=20, center=true);
+            translate([0,0,-height*0.20-screw/2-screw*2])
+            cylinder(d=screw*1.1*2,h=screw*4,$fn=20,center=true);
           }
+      }
     }
   }
 
 }
 
 /* for 3d printing */
-if(0)
-    reflector(height=27, interface=3);
+if(1)
+    reflector(height=43, interface=3);
 
 star_angle=atan((1 + sqrt(5)) / 2);
 
-if(1)
+if(0)
     rotate([0,90,0])
 difference()
 {
