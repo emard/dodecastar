@@ -208,13 +208,13 @@ difference()
         translate([0,7,0])
           union()
           {
-            cylinder(d=3.2, h=13, $fn=20, center=true);
+            cylinder(d=2.5, h=13, $fn=20, center=true);
             translate([0,0,-5.3])
-              cylinder(d1=6, d2=3, h=3/2, $fn=20, center=true);
+              cylinder(d1=5, d2=2.5, h=3/2, $fn=20, center=true);
             translate([0,0,-11])
-              cylinder(d=6, h=10, $fn=20, center=true);
+              cylinder(d=5, h=10, $fn=20, center=true);
           }
-        // hole for the screw thread
+        // hole in the nut for the screw thread
         translate([0,-7,0])
           cylinder(d=1.6,h=11,$fn=20, center=true);
       }
