@@ -127,6 +127,11 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
   screw=2.2;
   screw_pos=height*0.2593; // equals 7 for height=27
   // for compatibility with already printed parts of height=27
+  screw_hole_d=screw*1.2;
+  screw_head_d=screw*2.1;
+  screw_head_h=screw*0.6;
+  screw_depth=height*0.17;
+  nut_height=0.5;
   cable_w=6;
   cable_h=1.8;
   union()
@@ -182,12 +187,12 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
                 union()
                 {
                   // screw hole
-                  cylinder(d=screw*1.2, h=height, $fn=20, center=true);
+                  cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
                   // conical screw head
-                  translate([0,0,height*0.20+screw/4])
-                  cylinder(d1=screw*1.2,d2=screw*1.2*2,h=screw/2, $fn=20, center=true);
-                  translate([0,0,height*0.20+screw/2+screw*2])
-                  cylinder(d=screw*1.2*2,h=screw*4,$fn=20,center=true);
+                  translate([0,0,screw_depth+screw_head_h/2])
+                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=true);
+                  translate([0,0,screw_depth+screw_head_h+screw*2])
+                    cylinder(d=screw_head_d,h=screw*4,$fn=20,center=true);
                 }
         }
       }
@@ -197,10 +202,10 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
       // plastic nut for screw thread
       rotate([0,90,0])
         rotate([0,0,star_angle])
-           translate([0,-screw_pos,height/10])
+           translate([0,-screw_pos,height/10+nut_height])
              difference()
              {
-               cylinder(d=screw*2.5,h=height/5,$fn=20,center=true);
+               cylinder(d=screw*2.5,h=height/5-nut_height,$fn=20,center=true);
                // hole in the nut for screw thread
                cylinder(d=screw*0.75,h=height,$fn=20,center=true);
              }
