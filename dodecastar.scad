@@ -122,11 +122,18 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 */
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
 {
+  // additional stuff for interface=3
   star_angle=atan((1 + sqrt(5)) / 2);
-  screw=2.2; // screw diameter for interface=3
-  difference()
+  screw=2.2;
+  screw_pos=height*0.2593; // equals 7 for height=27
+  // for compatibility with already printed parts of height=27
+  cable_w=6;
+  cable_h=1.8;
+  union()
   {
-    union()
+    difference()
+  {
+    union() // material volume
     {
       dodecastar(height);
       /* lamp screw hole, reinforced with extruded pentagon
@@ -137,7 +144,7 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
           rotate([0,0,90])
             cylinder(h = height*(extup+1-0.233*2-ih*(1-2*id))/2, r = 8, $fa = 360/5, $fs = 0.1);
     }
-    union()
+    union() // void volume
     {
       /* cut out dodecastar interior for the lamp */
       // dodecahedron(height*ih);
@@ -164,23 +171,40 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
       if(interface==3)
       {
         // cube to cut off half-star
-        translate([height,0,0])
+        translate([-height,0,0])
           cube([2*height,2*height,2*height], center=true);
+        // box to cut off cable holder slit
+        rotate([star_angle,0,0])
+          cube([cable_h,cable_w,height*1.1],center=true);
         // cylinder to drill screw thru-hole
         rotate([0,90,0])
           rotate([0,0,star_angle])
-          translate([0,height*0.2593,0])
+          translate([0,screw_pos,0])
           union()
           {
             // screw hole
             cylinder(d=screw*1.1, h=height, $fn=20, center=true);
             // conical screw head
-            translate([0,0,-height*0.20-screw/4])
-            cylinder(d2=screw*1.1,d1=screw*1.1*2,h=screw/2, $fn=20, center=true);
-            translate([0,0,-height*0.20-screw/2-screw*2])
+            translate([0,0,height*0.20+screw/4])
+            cylinder(d1=screw*1.1,d2=screw*1.1*2,h=screw/2, $fn=20, center=true);
+            translate([0,0,height*0.20+screw/2+screw*2])
             cylinder(d=screw*1.1*2,h=screw*4,$fn=20,center=true);
           }
       }
+    }
+  }
+    if(interface == 3) // post-added volume
+      {
+          // plastic nut for screw thread
+         rotate([0,90,0])
+          rotate([0,0,star_angle])
+          translate([0,-screw_pos,height/10])
+         difference()
+         {
+           cylinder(d=screw*2.5,h=height/5,$fn=20,center=true);
+           // hole in the nut for screw thread
+           cylinder(d=screw*0.75,h=height,$fn=20,center=true);
+         }
     }
   }
 
@@ -188,54 +212,7 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
 
 /* for 3d printing */
 if(1)
-    reflector(height=43, interface=3);
-
-star_angle=atan((1 + sqrt(5)) / 2);
-
-if(0)
-    rotate([0,90,0])
-difference()
-{
-  union()
-  {
-    reflector(height=27, interface=0);
-    // see the PCB inside
-    if(0)
-    rotate([star_angle,0,0])
-    rotate([0,90,0])
-    cylinder(d=10,h=1,center=true);
-    // nut for the screw thread
-    rotate([star_angle,0,0])
-    rotate([0,90,0])
-    translate([0,-7,-3])
-    cylinder(d=5.5,h=5,$fn=20,center=true); // plastic 
-  }
-  union()
-  {
-    translate([20,0,0])
-      cube([40,40,40],center=true);
-    rotate([star_angle,0,0])
-      cube([1.8,6,40],center=true);
-    // screw hole with angular head insert
-    rotate([0,90,0])
-      rotate([0,0,star_angle])
-        union()
-        {
-        translate([0,7,0])
-          union()
-          {
-            cylinder(d=2.5, h=13, $fn=20, center=true);
-            translate([0,0,-5.3])
-              cylinder(d1=5, d2=2.5, h=3/2, $fn=20, center=true);
-            translate([0,0,-11])
-              cylinder(d=5, h=10, $fn=20, center=true);
-          }
-        // hole in the nut for the screw thread
-        translate([0,-7,0])
-          cylinder(d=1.6,h=11,$fn=20, center=true);
-      }
-  }
-}
+    reflector(height=32, interface=3);
 
 /* for blender export */
 /*
