@@ -132,24 +132,24 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
   union()
   {
     difference()
-  {
-    union() // material volume
     {
-      dodecastar(height);
-      /* lamp screw hole, reinforced with extruded pentagon
-      ** 0.233 is the cut depth of outer dodecastar
-      ** 0.1 is the internal dodecastar-hole cut depth */
-      if(interface == 1)
-        translate([0,0,height*ih/2 * (1-2*id)])
-          rotate([0,0,90])
-            cylinder(h = height*(extup+1-0.233*2-ih*(1-2*id))/2, r = 8, $fa = 360/5, $fs = 0.1);
-    }
-    union() // void volume
-    {
-      /* cut out dodecastar interior for the lamp */
-      // dodecahedron(height*ih);
-      dodecastar(height*ih, d = id, u = 0, l = 0);
-      /* cut out the screw thread, translate and length same as reinforcement */
+      union() // material volume
+      {
+        dodecastar(height);
+        /* lamp screw hole, reinforced with extruded pentagon
+        ** 0.233 is the cut depth of outer dodecastar
+        ** 0.1 is the internal dodecastar-hole cut depth */
+        if(interface == 1)
+          translate([0,0,height*ih/2 * (1-2*id)])
+            rotate([0,0,90])
+              cylinder(h = height*(extup+1-0.233*2-ih*(1-2*id))/2, r = 8, $fa = 360/5, $fs = 0.1);
+      }
+      union() // void volume
+      {
+        /* cut out dodecastar interior for the lamp */
+        // dodecahedron(height*ih);
+        dodecastar(height*ih, d = id, u = 0, l = 0);
+        /* cut out the screw thread, translate and length same as reinforcement */
 /*           8,  // Height 
  *           3,  // Step height (the half will be used to countersink the ends)
  *          55,  // Degrees (same as used for the screw_thread example)
@@ -157,57 +157,55 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
  *         0.5)  // Resolution, you may want to set this to small values cca 0.5
  *                  (quite high res) to minimize overhang issues 
  */
-
-      if(interface==1)
-        translate([0,0,height*ih/2 * (1-2*id)])
-          thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12.4,0.5);
-      if(interface==2)
+        if(interface==1)
+          translate([0,0,height*ih/2 * (1-2*id)])
+            thread_cut(height*(extup+1-0.233*2-ih*(1-2*id))/2,3,55,12.4,0.5);
+        if(interface==2)
           rotate([0,0,30])
           {
             translate([0,-2,0])
               cube([9,3,height], center=true);
             cube([13,1,height], center=true);
           }
-      if(interface==3)
-      {
-        // cube to cut off half-star
-        translate([-height,0,0])
-          cube([2*height,2*height,2*height], center=true);
-        // box to cut off cable holder slit
-        rotate([star_angle,0,0])
-          cube([cable_h,cable_w,height*1.1],center=true);
-        // cylinder to drill screw thru-hole
-        rotate([0,90,0])
-          rotate([0,0,star_angle])
-          translate([0,screw_pos,0])
-          union()
-          {
-            // screw hole
-            cylinder(d=screw*1.1, h=height, $fn=20, center=true);
-            // conical screw head
-            translate([0,0,height*0.20+screw/4])
-            cylinder(d1=screw*1.1,d2=screw*1.1*2,h=screw/2, $fn=20, center=true);
-            translate([0,0,height*0.20+screw/2+screw*2])
-            cylinder(d=screw*1.1*2,h=screw*4,$fn=20,center=true);
-          }
+        if(interface==3)
+        {
+          // cube to cut off half-star
+          translate([-height,0,0])
+            cube([2*height,2*height,2*height], center=true);
+          // box to cut off cable holder slit
+          rotate([star_angle,0,0])
+            cube([cable_h,cable_w,height*1.1],center=true);
+          // cylinder to drill screw thru-hole
+          rotate([0,90,0])
+            rotate([0,0,star_angle])
+              translate([0,screw_pos,0])
+                union()
+                {
+                  // screw hole
+                  cylinder(d=screw*1.2, h=height, $fn=20, center=true);
+                  // conical screw head
+                  translate([0,0,height*0.20+screw/4])
+                  cylinder(d1=screw*1.2,d2=screw*1.2*2,h=screw/2, $fn=20, center=true);
+                  translate([0,0,height*0.20+screw/2+screw*2])
+                  cylinder(d=screw*1.2*2,h=screw*4,$fn=20,center=true);
+                }
+        }
       }
     }
-  }
     if(interface == 3) // post-added volume
-      {
-          // plastic nut for screw thread
-         rotate([0,90,0])
-          rotate([0,0,star_angle])
-          translate([0,-screw_pos,height/10])
-         difference()
-         {
-           cylinder(d=screw*2.5,h=height/5,$fn=20,center=true);
-           // hole in the nut for screw thread
-           cylinder(d=screw*0.75,h=height,$fn=20,center=true);
-         }
+    {
+      // plastic nut for screw thread
+      rotate([0,90,0])
+        rotate([0,0,star_angle])
+           translate([0,-screw_pos,height/10])
+             difference()
+             {
+               cylinder(d=screw*2.5,h=height/5,$fn=20,center=true);
+               // hole in the nut for screw thread
+               cylinder(d=screw*0.75,h=height,$fn=20,center=true);
+             }
     }
   }
-
 }
 
 /* for 3d printing */
