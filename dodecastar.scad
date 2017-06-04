@@ -125,7 +125,7 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 screw_pos=7,
 screw=2.2, screw_thread_d=2.2*0.7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.2,
 screw_head_h=2.2*0.6, screw_length=13.3, 
-nut_height=1, nut_d=2.2*2.5,
+nut_height=1.0, nut_d=2.2*2.1,
 cable_w=6, cable_h=1.8,
 interface=3)
 {
@@ -181,10 +181,9 @@ interface=3)
             cube([cable_h,cable_w,height*1.1],center=true);
           // cylinder to drill screw thru-hole
           // just drill screw head hole thru above
-          // material will be inserted later
           rotate([0,90,0])
             rotate([0,0,star_angle])
-              translate([0,screw_pos,nut_height])
+              translate([0,screw_pos,screw_height])
                 cylinder(d=screw_head_d-0.001,h=height,$fn=20,center=false);
           // screw leader hole thru all
           rotate([0,90,0])
@@ -223,7 +222,7 @@ interface=3)
              {
                // the material (the nut)
                translate([0,0,nut_height])
-                 cylinder(d=nut_d,h=height*0.22-nut_height,$fn=20,center=false);
+                 cylinder(d1=nut_d,d2=screw_head_d,h=height*0.22-nut_height,$fn=20,center=false);
                // hole in the screw leader
                union()
                {
