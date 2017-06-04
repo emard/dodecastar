@@ -123,7 +123,7 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 // for interface=3
 screw_pos=7,
-screw=2.2, screw_thread_d=2.2*0.7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.2,
+screw=2.2, screw_thread_d=2.2*0.7, screw_hole_d=2.2*1.3, screw_head_d=2.2*2.2,
 screw_head_h=2.2*0.6, screw_length=13.3, 
 nut_height=1.0, nut_d=2.2*2.1,
 cable_w=6, cable_h=1.8,
@@ -220,10 +220,15 @@ interface=3)
            translate([0,screw_pos,0])
              difference()
              {
+               union()
+               {
                // the material (the nut)
                // 1.5 mm add to diameter for screw holder thickness
                translate([0,0,nut_height])
-                 cylinder(d1=nut_d,d2=screw_head_d+1.5,h=height*0.22-nut_height,$fn=20,center=false);
+                 cylinder(d1=nut_d,d2=screw_head_d+1.5,h=screw_height-nut_height,$fn=20,center=false);
+               translate([0,0,screw_height])
+                 cylinder(d=screw_head_d+1.5,h=height*0.22-screw_height,$fn=20,center=false);
+               }
                // hole in the screw leader
                union()
                {
@@ -243,7 +248,7 @@ interface=3)
 
 /* for 3d printing */
 if(1)
-    reflector(height=27, screw_head_h=0.001, screw_length=8, interface=3);
+    reflector(height=27, screw_head_h=0.001, screw_length=6, interface=3);
     // reflector(height=32, interface=3);
 
 /* for blender export */
