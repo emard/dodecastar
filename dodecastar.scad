@@ -124,7 +124,8 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 // for interface=3
 screw_pos=7,
 screw=2.2, screw_thread_d=2.2*0.7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.2,
-screw_head_h=2.2*0.6, screw_length=13.3, nut_height=1,
+screw_head_h=2.2*0.6, screw_length=13.3, 
+nut_height=1, nut_d=2.2*2.5,
 cable_w=6, cable_h=1.8,
 interface=3)
 {
@@ -213,7 +214,7 @@ interface=3)
            translate([0,-screw_pos,height/10+nut_height/2])
              difference()
              {
-               cylinder(d=screw*2.5,h=height/5-nut_height,$fn=20,center=true);
+               cylinder(d=nut_d,h=height/5-nut_height,$fn=20,center=true);
                // hole in the nut for screw thread
                cylinder(d=screw_thread_d,h=height,$fn=20,center=true);
              }
@@ -222,7 +223,7 @@ interface=3)
              {
                // the material (the nut)
                translate([0,0,nut_height])
-                 cylinder(d=screw*2.5,h=height*0.22-nut_height,$fn=20,center=false);
+                 cylinder(d=nut_d,h=height*0.22-nut_height,$fn=20,center=false);
                // hole in the screw leader
                union()
                {
