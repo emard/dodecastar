@@ -221,8 +221,9 @@ interface=3)
              difference()
              {
                // the material (the nut)
+               // 1.5 mm add to diameter for screw holder thickness
                translate([0,0,nut_height])
-                 cylinder(d1=nut_d,d2=screw_head_d,h=height*0.22-nut_height,$fn=20,center=false);
+                 cylinder(d1=nut_d,d2=screw_head_d+1.5,h=height*0.22-nut_height,$fn=20,center=false);
                // hole in the screw leader
                union()
                {
@@ -242,7 +243,8 @@ interface=3)
 
 /* for 3d printing */
 if(1)
-    reflector(height=32, interface=3);
+    reflector(height=27, screw_head_h=0.001, screw_length=8, interface=3);
+    // reflector(height=32, interface=3);
 
 /* for blender export */
 /*
