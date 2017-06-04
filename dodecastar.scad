@@ -184,22 +184,22 @@ interface=3)
           rotate([0,90,0])
             rotate([0,0,star_angle])
               translate([0,screw_pos,screw_height])
-                cylinder(d=screw_head_d-0.001,h=height,$fn=20,center=false);
+                cylinder(d=screw_head_d-0.001,h=height+0.002,$fn=20,center=false);
           // screw leader hole thru all
           rotate([0,90,0])
             rotate([0,0,star_angle])
               translate([0,screw_pos,-0.001])
-                cylinder(d=screw_hole_d,h=height,$fn=20,center=false);
+                cylinder(d=screw_hole_d,h=height+0.002,$fn=20,center=false);
           // screw hole for the thread
           rotate([0,90,0])
             rotate([0,0,star_angle])
               translate([0,-screw_pos,-0.001])
-                cylinder(d=screw_thread_d,h=height*0.22,$fn=20,center=false);
+                cylinder(d=screw_thread_d,h=height*0.22+0.002,$fn=20,center=false);
           // screw leader hole for thread clearance
           rotate([0,90,0])
             rotate([0,0,star_angle])
               translate([0,-screw_pos,-0.001])
-                cylinder(d=screw_hole_d,h=nut_height,$fn=20,center=false);
+                cylinder(d=screw_hole_d,h=nut_height+0.002,$fn=20,center=false);
         }
       }
     }
@@ -248,7 +248,7 @@ interface=3)
 
 /* for 3d printing */
 if(1)
-    reflector(height=27, screw_head_h=0.001, screw_length=6, interface=3);
+    reflector(height=27, screw_head_h=0.001, screw_length=5, interface=3);
     // reflector(height=32, interface=3);
 
 /* for blender export */
