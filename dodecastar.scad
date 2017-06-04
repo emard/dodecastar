@@ -193,12 +193,12 @@ interface=3)
           // screw hole for the thread
           rotate([0,90,0])
             rotate([0,0,star_angle])
-              translate([0,-screw_pos,0])
+              translate([0,-screw_pos,-0.001])
                 cylinder(d=screw_thread_d,h=height*0.22,$fn=20,center=false);
           // screw leader hole for thread clearance
           rotate([0,90,0])
             rotate([0,0,star_angle])
-              translate([0,-screw_pos,0])
+              translate([0,-screw_pos,-0.001])
                 cylinder(d=screw_hole_d,h=nut_height,$fn=20,center=false);
         }
       }
