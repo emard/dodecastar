@@ -123,13 +123,13 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 // for interface=3
 screw=2.2, screw_pos=7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.0,
-screw_head_h=2.2*0.6, screw_length=13.3, nut_height=0.5,
+screw_head_h=2.2*0.6, screw_length=13, nut_height=0.5,
 cable_w=6, cable_h=1.8,
 interface=3)
 {
   // additional stuff for interface=3
   star_angle=atan((1 + sqrt(5)) / 2);
-  screw_height=(screw_length-screw_head_h)/2;
+  screw_height=screw_length/2-screw_head_h; // height without the head
   rotate([0,interface==3 ? 270 : 0,0])
   union()
   {
@@ -178,19 +178,12 @@ interface=3)
           rotate([star_angle,0,0])
             cube([cable_h,cable_w,height*1.1],center=true);
           // cylinder to drill screw thru-hole
+          // just drill screw head hole thru all
+          // material will be inserted later
           rotate([0,90,0])
             rotate([0,0,star_angle])
               translate([0,screw_pos,0])
-                union()
-                {
-                  // screw hole
-                  cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
-                  // conical screw head
-                  translate([0,0,screw_height+screw_head_h/2])
-                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=true);
-                  translate([0,0,screw_height+screw_head_h+screw*2])
-                    cylinder(d=screw_head_d,h=screw*4,$fn=20,center=true);
-                }
+                cylinder(d=screw_head_d-0.001,h=height,$fn=20,center=false);
         }
       }
     }
@@ -211,24 +204,19 @@ interface=3)
            translate([0,screw_pos,0])
              difference()
              {
-               // the material
-               translate([0,0,screw_height/2+nut_height/2])
-                 cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
+               // the material (the nut)
+               translate([0,0,nut_height])
+                 cylinder(d=screw*2.5,h=height*0.22-nut_height,$fn=20,center=false);
                // hole in the screw leader
                union()
                {
-                 translate([0,0,screw_height/2+nut_height/2])
-                   cylinder(d=screw_hole_d,h=height,$fn=20,center=true);
-
-                  // repeated code from above *** CLEANUP PLEASE ***
-                  // cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
-                  // screw hole
-                  cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
-                  // conical screw head
-                  translate([0,0,screw_height+screw_head_h/2])
-                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=true);
-                  translate([0,0,screw_height+screw_head_h+screw*2])
-                    cylinder(d=screw_head_d,h=screw*4,$fn=20,center=true);
+                 // thru-hole, more than long enough
+                 cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
+                 // conical screw head
+                 translate([0,0,screw_height])
+                   cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=false);
+                 translate([0,0,screw_height+screw_head_h])
+                   cylinder(d=screw_head_d,h=screw_length,$fn=20,center=falsee);
                }
              }
         }
