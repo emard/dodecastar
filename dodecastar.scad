@@ -208,12 +208,28 @@ interface=3)
                // hole in the nut for screw thread
                cylinder(d=screw*0.75,h=height,$fn=20,center=true);
              }
-           translate([0,screw_pos,screw_height/2+nut_height/2])
+           translate([0,screw_pos,0])
              difference()
              {
-               cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
+               // the material
+               translate([0,0,screw_height/2+nut_height/2])
+                 cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
                // hole in the screw leader
-               cylinder(d=screw_hole_d,h=height,$fn=20,center=true);
+               union()
+               {
+                 translate([0,0,screw_height/2+nut_height/2])
+                   cylinder(d=screw_hole_d,h=height,$fn=20,center=true);
+
+                  // repeated code from above *** CLEANUP PLEASE ***
+                  // cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
+                  // screw hole
+                  cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
+                  // conical screw head
+                  translate([0,0,screw_height+screw_head_h/2])
+                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=true);
+                  translate([0,0,screw_height+screw_head_h+screw*2])
+                    cylinder(d=screw_head_d,h=screw*4,$fn=20,center=true);
+               }
              }
         }
     }
