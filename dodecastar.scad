@@ -123,7 +123,7 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 // for interface=3
 screw=2.2, screw_pos=7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.0,
-screw_head_h=2.2*0.6, screw_length=13, nut_height=0.5,
+screw_head_h=2.2*0.6, screw_length=13.3, nut_height=0.5,
 cable_w=6, cable_h=1.8,
 interface=3)
 {
@@ -184,6 +184,11 @@ interface=3)
             rotate([0,0,star_angle])
               translate([0,screw_pos,0])
                 cylinder(d=screw_head_d-0.001,h=height,$fn=20,center=false);
+          // screw hole for the thread
+          rotate([0,90,0])
+            rotate([0,0,star_angle])
+              translate([0,-screw_pos,0])
+                cylinder(d=screw*0.75,h=height*0.22,$fn=20,center=false);
         }
       }
     }
