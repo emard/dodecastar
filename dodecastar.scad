@@ -120,20 +120,16 @@ module dodecahedron(height)
 interior dodecastar : ih = 0.7, id = 0.15, extup = 0.25
 interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 */
-module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
+module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
+// for interface=3
+screw=2.2, screw_pos=7, screw_hole_d=2.2*1.2, screw_head_d=2.2*2.0,
+screw_head_h=2.2*0.6, screw_length=13.3, nut_height=0.5,
+cable_w=6, cable_h=1.8,
+interface=3)
 {
   // additional stuff for interface=3
   star_angle=atan((1 + sqrt(5)) / 2);
-  screw=2.2;
-  screw_pos=height*0.2593; // equals 7 for height=27
-  // for compatibility with already printed parts of height=27
-  screw_hole_d=screw*1.2;
-  screw_head_d=screw*2.0;
-  screw_head_h=screw*0.6;
-  screw_depth=height*0.18;
-  nut_height=0.5;
-  cable_w=6;
-  cable_h=1.8;
+  screw_height=(screw_length-screw_head_h)/2;
   rotate([0,interface==3 ? 270 : 0,0])
   union()
   {
@@ -190,9 +186,9 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
                   // screw hole
                   cylinder(d=screw_hole_d, h=height, $fn=20, center=true);
                   // conical screw head
-                  translate([0,0,screw_depth+screw_head_h/2])
+                  translate([0,0,screw_height+screw_head_h/2])
                     cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=true);
-                  translate([0,0,screw_depth+screw_head_h+screw*2])
+                  translate([0,0,screw_height+screw_head_h+screw*2])
                     cylinder(d=screw_head_d,h=screw*4,$fn=20,center=true);
                 }
         }
@@ -212,10 +208,10 @@ module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22, interface=1)
                // hole in the nut for screw thread
                cylinder(d=screw*0.75,h=height,$fn=20,center=true);
              }
-           translate([0,screw_pos,screw_depth/2+nut_height/2])
+           translate([0,screw_pos,screw_height/2+nut_height/2])
              difference()
              {
-               cylinder(d=screw*2.5,h=screw_depth-nut_height,$fn=20,center=true);
+               cylinder(d=screw*2.5,h=screw_height-nut_height,$fn=20,center=true);
                // hole in the screw leader
                cylinder(d=screw_hole_d,h=height,$fn=20,center=true);
              }
