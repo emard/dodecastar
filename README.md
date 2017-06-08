@@ -5,5 +5,8 @@ for a string of ws2812b addressable LEDs or for Xmas
 decoration lights.
 
 Written in openscad. To visualize light reflection, it 
-could be exported to "OFF" format and imported into Blender
-(some example also included with pictures).
+could be exported to "OFF" format and imported into Blender.
+Example [pictures](/pic/)
+
+![pictures](/pic/dodecastar12.png)
+![pictures](/pic/render11-dodecahedron-inside.png)
