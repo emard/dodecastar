@@ -238,7 +238,7 @@ interface=3)
                  translate([0,0,screw_height])
                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=false);
                  translate([0,0,screw_height+screw_head_h])
-                   cylinder(d=screw_head_d,h=screw_length,$fn=20,center=falsee);
+                   cylinder(d=screw_head_d,h=screw_length,$fn=20,center=false);
                }
              }
         }
