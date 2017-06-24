@@ -123,7 +123,7 @@ interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 module reflector(height = 43, ih = 0.5, id = 0.0, extup = 0.22,
 // for interface=3
 screw_pos=7,
-screw=2.2, screw_thread_d=2.2*0.7, screw_hole_d=2.2*1.3, screw_head_d=2.2*2.2,
+screw=2.2, screw_thread_d=2.2*0.8, screw_hole_d=2.2*1.3, screw_head_d=2.2*2.2,
 screw_head_h=2.2*0.6, screw_length=13.3, 
 nut_height=1.0, nut_d=2.2*2.1,
 cable_w=6, cable_h=1.8,
