@@ -32,7 +32,7 @@ Carefully handle new LED strip. Soldered connections cannot
 stand any mechanical force. Only mounted dodecastars provide
 mechanical strength to whole LED strip.
 
-Solder the USB A male connector nn Din side of WS2812B module.
+Solder the USB A male connector on Din side of WS2812B module.
 I strongly recommend pinout compatible with normal USB,
 so that it can be accidentaly plugged into PC without
 any damage, but it will not light up yet because WS2812B 
@@ -56,16 +56,20 @@ No resistors or capacitors needed for NodeMCU.
 
 # Software
 
-Install [Arduino](http://arduino.cc), and if required
-the core support for your board, for ESP8266 it is
+Install [Arduino](http://arduino.cc), optionally
+also the core support if required for your board. 
+NodeMCU boards require 
+[ESP8266 core for Arduino ](https://github.com/esp8266/Arduino).
 
 Download
 [Adafruit NeoPixel library](https://github.com/adafruit/Adafruit_NeoPixel)
-And copy it to ~/Arduino/libraries/Adafruit_NeoPixel
+copy it to ~/Arduino/libraries/Adafruit_NeoPixel
+and restart arduino.
 
 Open Examples->Adafruit NeoPixel->Strandtest
-Edit source to set PIN connected to Din 
-(pin 2 in my case) and number of LEDs (50).
+Edit source to set right PIN connected to Din 
+(pin 2 in my case) and number of LEDs on the strip
+(I have 50).
 
     #define PIN 2 // Pin 2 is NodeMCU pin D4
     Adafruit_NeoPixel strip = Adafruit_NeoPixel(50, PIN, NEO_GRB + NEO_KHZ800);
