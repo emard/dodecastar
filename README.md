@@ -21,7 +21,7 @@ Example [pictures](/pic/)
 The dodecastars are intended to be mounted on a string of
 [50Pcs.WS2812B Pre-wired LEDs](http://www.ebay.com/itm/50Pcs-WS2812B-Pre-wired-LED-Pixel-Module-String-Light-Full-Color-5050-RGB-5V-TZ-/201965803082?hash=item2f0619964a:g:KbEAAOSwXeJYEGiZ).
 
-![pictures](ws2812b-LED-string.jpg)
+![pictures](/pic/ws2812b-LED-string.jpg)
 
 Each star consists of 2 halves, so let's print 100 of them
 with transparent colorless filament (I recommend PET-G).
