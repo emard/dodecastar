@@ -13,7 +13,7 @@ transparent material, it could be exported to "OFF"
 format and imported into Blender.
 Example [pictures](/pic/)
 
-![pictures](/pic/dodecastar12.png)
+![pictures](/pic/dodecastar.png)
 ![pictures](/pic/render11-dodecahedron-inside.png)
 
 # Xmas Lights Assembly
@@ -28,6 +28,8 @@ with transparent colorless filament (I recommend PET-G).
 Printing each half takes about 7 minutes. It will appear
 as icy-white. It would be ideal if it were really
 transparent, but filament extrusion can't make it.
+
+![pictures](/pic/dodecastar-half.png)
 
 Tighten 2 halves of dodecastar gently with 2 small inox screws for 
 plastic with round philips head, thread dia: 2.2 mm, thread length: 6 mm.
