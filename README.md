@@ -82,3 +82,5 @@ Edit source to set right PIN connected to "Din"
 
 Compile and upload, whole LED string will light up and
 constantly change beautiful colors!
+
+![pictures](/pic/dodecastar-lights.jpg)
