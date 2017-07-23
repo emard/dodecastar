@@ -23,7 +23,7 @@ The dodecastars are intended to be mounted on a string of
 
 ![pictures](/pic/ws2812b-LED-string.jpg)
 
-Each star consists of 2 halves, so let's print 100 of them
+Each star consists of 2 identical halves, so let's print 100 of them
 with transparent colorless filament (I recommend PET-G).
 Printing each half takes about 7 minutes. It will appear
 as icy-white. It would be ideal if it were really
