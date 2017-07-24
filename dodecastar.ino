@@ -4,6 +4,12 @@
 #endif
 
 #define PIN 2
+#define NUM_LEDS 50
+// web interface is stable up to 5 LEDs
+// for more, web interface will stop working after few clicks
+// workaround: don't disable interrupts in Adafruit_NeoPixel.cpp around line 149
+// /*  noInterrupts(); */
+// LEDs will flicker then, but web interface should be more stable
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -13,7 +19,7 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(50, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
@@ -55,10 +61,9 @@ String message = "";
 ESP8266WebServer server(80);
 String webString="";     // String to display (runtime modified)
 
-int ssr_cols = 5, ssr_rows = 10; // ssr display shown as table 2x3
-#define SSR_N 50
+int ssr_cols = 5, ssr_rows = NUM_LEDS/5; // ssr display shown as table cols x rows
 
-uint8_t relay_state[50];
+uint8_t relay_state[NUM_LEDS];
 
 /**
  * Read WiFi connection information from file system.
@@ -135,7 +140,7 @@ bool loadConfig(String *ssid, String *pass)
   // get LED state
   #if 0
   String ssr_state = content.substring(pos2 + le2);
-  for(int i = 0; i < ssr_state.length() && i < SSR_N; i++)
+  for(int i = 0; i < ssr_state.length() && i < NUM_LEDS; i++)
     relay_state[i] = (ssr_state.substring(i,i+1) == "1" ? 1 : 0);
   output_state();
   #endif
@@ -198,7 +203,7 @@ void format_filesystem(void)
 // output relay state to hardware pins
 void output_state()
 {
-  for(int i = 0; i < strip.numPixels() && i < SSR_N; i++)
+  for(int i = 0; i < strip.numPixels() && i < NUM_LEDS; i++)
   {
     uint32 c = relay_state[i] > 0 ? strip.Color(100,100,100) : strip.Color(0,0,0);
     strip.setPixelColor(i, c);
@@ -231,23 +236,19 @@ void create_message()
 "<meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />"
 "<meta http-equiv=\"pragma\" content=\"no-cache\" />"
 "</head>"
-            "<a href=\"/\">refresh</a> "
+            "<a href=\"/\">refresh</a>"
             "<a href=\"setup\">setup</a><p/>"
             "<form action=\"/update\" method=\"get\" autocomplete=\"off\">"
-            "<table>"
-            // on top is row with some parameters tabulated
-            "<tr>"
-            "<td>" + String((int)0)+"A" + "</td>"
-            "<td>" + String((int)0)+"B" + "</td>"
-            "</tr>";
+            "                   " // STABILITY SPACE if many clicks crash web page, try to add one more space here
+            "<table>";
   for(int y = 0; y < ssr_rows; y++)
   {
     message += "<tr>";
     for(int x = 0; x < ssr_cols; x++)
     {
       String input_name = "name=\"check" + String(n) + "\"";
-      message += String("<td bgcolor=\"") + String(relay_state[n] ? "#00FF00" : "#FF0000") + "\">"
-               + String("<input type=\"checkbox\" ") + input_name + String(relay_state[n] ? " checked" : "") + "> </input>"
+      message += "<td bgcolor=\"" + String(relay_state[n] ? "#00FF00" : "#FF0000") + "\">"
+               + "<input type=\"checkbox\" " + input_name + String(relay_state[n] ? " checked" : "") + "> </input>"
                + "<button type=\"submit\" name=\"button"
                + String(n) 
                + "\" value=\"" 
@@ -335,7 +336,7 @@ void handle_update() {
     if(server.argName(i) == "apply" || server.argName(i) == "save")
     {
       // assume all are off
-      for(int j = 0; j < SSR_N; j++)
+      for(int j = 0; j < NUM_LEDS; j++)
         relay_state[j] = 0;
       // checkboxes on
       for(int j = 0; j < server.args(); j++)
@@ -343,7 +344,7 @@ void handle_update() {
         if(server.argName(j).startsWith("check"))
         {
           int n = server.argName(j).substring(5).toInt();
-          if(n >= 0 && n < SSR_N)
+          if(n >= 0 && n < NUM_LEDS)
             if(server.arg(j) == "on")
               relay_state[n] = 1;
         }
@@ -358,7 +359,7 @@ void handle_update() {
     if(server.argName(i).startsWith("button"))
     {
       int n = server.argName(i).substring(6).toInt();
-      if(n >= 0 && n < SSR_N)
+      if(n >= 0 && n < NUM_LEDS)
         relay_state[n] = server.arg(i).toInt();
     }
   };
@@ -522,8 +523,8 @@ void loop() {
   // Handle web server
   server.handleClient();
   digitalWrite(LED_BUILTIN, LOW); // LED ON
-  strip.show();
-  // yield();
+  strip.show(); // it will disable interrupts
+  interrupts(); // re-enable interrupts
   digitalWrite(LED_BUILTIN, HIGH); // LED OFF
 #if 0
   // Some example procedures showing how to display to the pixels:
