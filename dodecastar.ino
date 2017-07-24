@@ -51,6 +51,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 #define COUNTDOWN_CYCLES 10
 int countdown = COUNTDOWN_CYCLES; // improve web stability after clicking, do some loop() cycles without ledstrip update
 int allow_interrupts = 1; // no interrupts: web stability only with no interrupts, interrupts: noflicker
+int program_control = 0; // blink leds using program control
+int program_speed = 5; // how fast
+int program_density = 2; // how dense does the color changes between pixels
+
 /**
  * Default WiFi connection information.
  */
@@ -243,7 +247,7 @@ void create_message()
             "<a href=\"cssButton\">cssButton</a> "
             "<p/>"
             "<form action=\"/update\" method=\"get\" autocomplete=\"off\">";
-  // this controls interrupts on/off
+  // interrupts on/off
   message +=     "FLICKER "
                  " <button type=\"submit\" name=\"interrupt_btn\" value=\"" 
                + String(allow_interrupts ? "0" : "1") 
@@ -252,6 +256,26 @@ void create_message()
                + "</button>"
                + String(allow_interrupts ? "" : " if LED strip stops responding, power OFF/ON")
                + "<p/>";
+  // program control on/off
+  message +=     "PROGRAM "
+                 " <button type=\"submit\" name=\"program_btn\" value=\"" 
+               + String(program_control ? "0" : "1") 
+               + "\">" // toggle when clicked 
+               + String(program_control ? "ON" : "OFF") // current state
+               + "</button>"
+                 "<p/>";
+  // program speed
+  message +=     "SPEED "
+               " <input type=\"number\" name=\"speed\" value=\"" 
+               + String(program_speed) 
+               + "\" min=\"1\" max=\"10\">"
+                 "<p/>";
+  // program density
+  message +=     "DENSITY "
+               " <input type=\"number\" name=\"density\" value=\"" 
+               + String(program_density)
+               + "\" min=\"1\" max=\"10\">"
+                 "<p/>";
   // this controls each individual LED on the strip
   message += "<table>";
   for(int y = 0; y < ssr_rows; y++)
@@ -379,6 +403,12 @@ void handle_update() {
     }
     if(server.argName(i).startsWith("interrupt_btn"))
       allow_interrupts = server.arg(i).toInt();
+    if(server.argName(i).startsWith("program_btn"))
+      program_control = server.arg(i).toInt();
+    if(server.argName(i).startsWith("speed"))
+      program_speed = server.arg(i).toInt();
+    if(server.argName(i).startsWith("density"))
+      program_density = server.arg(i).toInt();
   };
   output_state();
   create_message();
@@ -418,6 +448,22 @@ void handle_cssButton()
 "</html>";
 
   server.send(200, "text/html", cssButton);
+}
+
+void program()
+{
+  uint32_t t = millis(); // time
+  static uint32_t old_t = 0;
+  static uint8_t p = 0;
+  
+  if(t != old_t)
+  {
+    old_t = t;
+    for(int i = 0; i < NUM_LEDS; i++)
+    {
+      strip.setPixelColor(i, Wheel( ( (i<<(program_density-1)) - (t>>(10-program_speed))) & 255) );
+    }
+  }
 }
 
 void setup() {
@@ -570,6 +616,8 @@ void loop() {
     countdown--;
   else
   {
+    if(program_control > 0)
+      program();
     if(allow_interrupts == 0)
       noInterrupts();
     strip.show(); // it will disable interrupts
