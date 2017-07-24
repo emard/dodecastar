@@ -54,6 +54,7 @@ int allow_interrupts = 1; // no interrupts: web stability only with no interrupt
 int program_control = 0; // blink leds using program control
 int program_speed = 5; // how fast
 int program_density = 2; // how dense does the color changes between pixels
+int program_brightness = 50; // intensity of the LEDs
 
 /**
  * Default WiFi connection information.
@@ -209,7 +210,7 @@ void format_filesystem(void)
   saveConfig(&station_ssid, &station_psk);
 }
 
-// output relay state to hardware pins
+// output led state to hardware pins
 void output_state()
 {
   for(int i = 0; i < strip.numPixels() && i < NUM_LEDS; i++)
@@ -247,6 +248,29 @@ void create_message()
             "<a href=\"cssButton\">cssButton</a> "
             "<p/>"
             "<form action=\"/update\" method=\"get\" autocomplete=\"off\">";
+  // this controls each individual LED on the strip
+  message += "<table>";
+  for(int y = 0; y < ssr_rows; y++)
+  {
+    message += "<tr>";
+    for(int x = 0; x < ssr_cols; x++)
+    {
+      String input_name = "name=\"check" + String(n) + "\"";
+      message += "<td bgcolor=\"" + String(led_color[n] ? "#00FF00" : "#FF0000") + "\">"
+               + "<input type=\"checkbox\" " + input_name + String(led_color[n] ? " checked" : "") + "> </input>"
+               + "<button type=\"submit\" name=\"button"
+               + String(n) 
+               + "\" value=\"" 
+               + String(led_color[n] ? "0" : "1") 
+               + "\">" // toggle when clicked 
+               + String(led_color[n] ? "ON" : "OFF") // current state
+               + "</button>"
+                 "</td>";
+      n++; // increment ssr number
+    }
+    message += "</tr>";
+  }
+  message += "</table>";
   // interrupts on/off
   message +=     "FLICKER "
                  " <button type=\"submit\" name=\"interrupt_btn\" value=\"" 
@@ -276,38 +300,17 @@ void create_message()
                + String(program_density)
                + "\" min=\"1\" max=\"10\">"
                  "<p/>";
-  // this controls each individual LED on the strip
-  message += "<table>";
-  for(int y = 0; y < ssr_rows; y++)
-  {
-    message += "<tr>";
-    for(int x = 0; x < ssr_cols; x++)
-    {
-      String input_name = "name=\"check" + String(n) + "\"";
-      message += "<td bgcolor=\"" + String(led_color[n] ? "#00FF00" : "#FF0000") + "\">"
-               + "<input type=\"checkbox\" " + input_name + String(led_color[n] ? " checked" : "") + "> </input>"
-               + "<button type=\"submit\" name=\"button"
-               + String(n) 
-               + "\" value=\"" 
-               + String(led_color[n] ? "0" : "1") 
-               + "\">" // toggle when clicked 
-               + String(led_color[n] ? "ON" : "OFF") // current state
-               + "</button>"
-                 "</td>";
-      n++; // increment ssr number
-    }
-    message += "</tr>";
-  }
-  message += "<tr>"
-             "<td>"
-             "<button type=\"submit\" name=\"apply\" value=\"1\">Apply</button>"
-             "</td>"
-             "<td>"
-             "<button type=\"submit\" name=\"save\" value=\"1\">Save</button>"
-             "</td>"
-             "</tr>"
-             "</table>"
-             "</form>";
+  // program brightness
+  message +=     "BRIGHTNESS "
+               " <input type=\"number\" name=\"brightness\" value=\"" 
+               + String(program_brightness)
+               + "\" min=\"0\" max=\"256\">"
+                 "<p/>";
+
+  message += "<button type=\"submit\" name=\"apply\" value=\"1\">Apply</button>"
+             "<button type=\"submit\" name=\"save\" value=\"1\">Save</button>";
+ 
+  message += "</form>";
 }
 
 // when user requests root web page
@@ -409,8 +412,11 @@ void handle_update() {
       program_speed = server.arg(i).toInt();
     if(server.argName(i).startsWith("density"))
       program_density = server.arg(i).toInt();
-  };
-  output_state();
+    if(server.argName(i).startsWith("brightness"))
+      program_brightness = server.arg(i).toInt();
+  }
+  if(program_control == 0)
+    output_state();
   create_message();
   webString = message;
   #if 0
@@ -452,7 +458,7 @@ void handle_cssButton()
 
 void program()
 {
-  uint32_t t = millis(); // time
+  uint32_t t = millis() >> (10-program_speed); // time
   static uint32_t old_t = 0;
   static uint8_t p = 0;
   
@@ -461,7 +467,7 @@ void program()
     old_t = t;
     for(int i = 0; i < NUM_LEDS; i++)
     {
-      strip.setPixelColor(i, Wheel( ( (i<<(program_density-1)) - (t>>(10-program_speed))) & 255) );
+      strip.setPixelColor(i, Wheel_bright( ( (i<<(program_density-1)) - t ) & 255, program_brightness) );
     }
   }
 }
@@ -729,3 +735,30 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
+
+uint32_t Wheel_bright(byte WheelPos, byte brightness) {
+  uint32_t r,g,b;
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    r = 255 - WheelPos * 3;
+    g = 0;
+    b = WheelPos * 3;
+  } else
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    r = 0;
+    g = WheelPos * 3;
+    b = 255 - WheelPos * 3;
+  } else
+  {
+    WheelPos -= 170;
+    r = WheelPos * 3;
+    g = 255 - WheelPos * 3;
+    b = 0;
+  }
+  r = r * brightness / 256;
+  g = g * brightness / 256;
+  b = b * brightness / 256;
+  return strip.Color(r, g, b);
+}
+
