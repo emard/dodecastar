@@ -7,9 +7,11 @@
 #define NUM_LEDS 50
 // web interface is stable up to 5 LEDs
 // for more, web interface will stop working after few clicks
-// workaround: don't disable interrupts in Adafruit_NeoPixel.cpp around line 149
+// workaround: in Adafruit_NeoPixel.cpp around line 149
+// comment out "noInterrupts()" call
 // /*  noInterrupts(); */
-// LEDs will flicker then, but web interface should be more stable
+// LEDs will flicker then, but web interface should be stable
+// Interrupts can be turned ON/OFF with "FLICKER" web button
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -46,6 +48,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 #define HOSTNAME "dodecastar-" ///< Hostename. The setup function adds the Chip ID at the end.
 /// @}
 
+int countdown = 30; // count until servicing LED strip
+int allow_interrupts = 1; // no interrupts: web stability only with no interrupts, interrupts: noflicker
 /**
  * Default WiFi connection information.
  */
@@ -236,11 +240,20 @@ void create_message()
 "<meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />"
 "<meta http-equiv=\"pragma\" content=\"no-cache\" />"
 "</head>"
-            "<a href=\"/\">refresh</a>"
+            "<a href=\"/\">refresh</a> "
             "<a href=\"setup\">setup</a><p/>"
-            "<form action=\"/update\" method=\"get\" autocomplete=\"off\">"
-            "                   " // STABILITY SPACE if many clicks crash web page, try to add one more space here
-            "<table>";
+            "<form action=\"/update\" method=\"get\" autocomplete=\"off\">";
+  // this controls interrupts on/off
+  message +=     "FLICKER "
+                 " <button type=\"submit\" name=\"interrupt_btn\" value=\"" 
+               + String(allow_interrupts ? "0" : "1") 
+               + "\">" // toggle when clicked 
+               + String(allow_interrupts ? "ON" : "OFF") // current state
+               + "</button>"
+               + String(allow_interrupts ? "" : " if LED strip stops responding, power OFF/ON")
+               + "<p/>";
+  // this controls each individual LED on the strip
+  message += "<table>";
   for(int y = 0; y < ssr_rows; y++)
   {
     message += "<tr>";
@@ -278,6 +291,7 @@ void handle_root()
 {
   create_message();
   server.send(200, "text/html", message);
+  countdown = 255;
 }
 
 void handle_setup() {
@@ -327,6 +341,7 @@ void handle_setup() {
     }
   }
   server.send(200, "text/html", webString);            // send to someones browser when asked
+  countdown = 255;
 }
 
 void handle_update() {
@@ -362,6 +377,8 @@ void handle_update() {
       if(n >= 0 && n < NUM_LEDS)
         relay_state[n] = server.arg(i).toInt();
     }
+    if(server.argName(i).startsWith("interrupt_btn"))
+      allow_interrupts = server.arg(i).toInt();
   };
   output_state();
   create_message();
@@ -375,6 +392,7 @@ void handle_update() {
   };
   #endif
   server.send(200, "text/html", webString);
+  countdown = 255;
 }
 
 void setup() {
@@ -522,10 +540,12 @@ void loop() {
   // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
   // Handle web server
   server.handleClient();
-  digitalWrite(LED_BUILTIN, LOW); // LED ON
+  if(allow_interrupts == 0)
+    noInterrupts();
+  // digitalWrite(LED_BUILTIN, LOW); // LED ON
   strip.show(); // it will disable interrupts
   interrupts(); // re-enable interrupts
-  digitalWrite(LED_BUILTIN, HIGH); // LED OFF
+  // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
 #if 0
   // Some example procedures showing how to display to the pixels:
   colorWipe(strip.Color(255,   0,   0), 40); // Red
