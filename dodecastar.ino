@@ -70,10 +70,16 @@ String current_psk = ap_default_psk;
 String message = "";
 ESP8266WebServer server(80);
 String webString="";     // String to display (runtime modified)
+// too many controls will make web interface unstable
+// enable checkbox for leds
+#define WEB_TAB_CHECKBOX 0
+// enable on-off buttons for leds
+#define WEB_TAB_BUTTONS 0
 
 int ssr_cols = 5, ssr_rows = NUM_LEDS/5; // ssr display shown as table cols x rows
 
 uint32_t led_color[NUM_LEDS];
+uint8_t led_on[NUM_LEDS]; // click for on/off
 
 /**
  * Read WiFi connection information from file system.
@@ -255,16 +261,22 @@ void create_message()
     message += "<tr>";
     for(int x = 0; x < ssr_cols; x++)
     {
-      String input_name = "name=\"check" + String(n) + "\"";
-      message += "<td bgcolor=\"" + String(led_color[n] ? "#00FF00" : "#FF0000") + "\">"
-               + "<input type=\"checkbox\" " + input_name + String(led_color[n] ? " checked" : "") + "> </input>"
+      char hexcolor[10];
+      sprintf(hexcolor, "#%06X", led_color[n]);
+      message += "<td bgcolor=\"" + String(hexcolor) + "\">"
+#if WEB_TAB_CHECKBOX
+               + "<input type=\"checkbox\" name=\"check" + String(n) + "\" " + String(led_on[n] ? " checked" : "") + "> </input>"
+#endif
+               + "<input type=\"color\" name=\"color" + String(n) + "\" value=\"" + String(hexcolor) + "\"> </input>"
+#if WEB_TAB_BUTTONS
                + "<button type=\"submit\" name=\"button"
                + String(n) 
                + "\" value=\"" 
-               + String(led_color[n] ? "0" : "1") 
+               + String(led_on[n] ? "0" : "1") 
                + "\">" // toggle when clicked 
-               + String(led_color[n] ? "ON" : "OFF") // current state
+               + String(led_on[n] ? "ON" : "OFF") // current state
                + "</button>"
+#endif
                  "</td>";
       n++; // increment ssr number
     }
@@ -379,16 +391,29 @@ void handle_update() {
     {
       // assume all are off
       for(int j = 0; j < NUM_LEDS; j++)
-        led_color[j] = 0;
+        led_on[j] = 0;
       // checkboxes on
       for(int j = 0; j < server.args(); j++)
       {
+        #if WEB_TAB_CHECKBOX
         if(server.argName(j).startsWith("check"))
         {
           int n = server.argName(j).substring(5).toInt();
           if(n >= 0 && n < NUM_LEDS)
             if(server.arg(j) == "on")
-              led_color[n] = strip.Color(100,0,0);
+              led_on[n] = 1;
+        }
+        #endif
+        if(server.argName(j).startsWith("color"))
+        {
+          int n = server.argName(j).substring(5).toInt();
+          if(n >= 0 && n < NUM_LEDS)
+          {
+            char hexcolor[10];
+            server.arg(j).substring(1).toCharArray(hexcolor, 7);
+            uint32_t bincolor = strtol(hexcolor, NULL, 16);
+            led_color[n] = strip.Color((bincolor >> 16) & 255, (bincolor >> 8) & 255, bincolor & 255);
+          }
         }
       }
     }
@@ -398,12 +423,14 @@ void handle_update() {
   // ON/OFF buttons
   for(int i = 0; i < server.args(); i++)
   {
+    #if WEB_TAB_BUTTONS
     if(server.argName(i).startsWith("button"))
     {
       int n = server.argName(i).substring(6).toInt();
       if(n >= 0 && n < NUM_LEDS)
-        led_color[n] = server.arg(i).toInt() ? strip.Color(0,100,0) : strip.Color(0,0,0);
+        led_on[n] = server.arg(i).toInt() ? 1 : 0;
     }
+    #endif
     if(server.argName(i).startsWith("interrupt_btn"))
       allow_interrupts = server.arg(i).toInt();
     if(server.argName(i).startsWith("program_btn"))
