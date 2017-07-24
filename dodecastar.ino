@@ -10,7 +10,7 @@
 // workaround: in Adafruit_NeoPixel.cpp around line 149
 // comment out "noInterrupts()" call
 // /*  noInterrupts(); */
-// LEDs will flicker then, but web interface should be stable
+// LEDs will flicker with interrupts ON, but web interface should be stable
 // Interrupts can be turned ON/OFF with "FLICKER" web button
 
 // Parameter 1 = number of pixels in strip
@@ -48,7 +48,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 #define HOSTNAME "dodecastar-" ///< Hostename. The setup function adds the Chip ID at the end.
 /// @}
 
-int countdown = 30; // count until servicing LED strip
+#define COUNTDOWN_CYCLES 10
+int countdown = COUNTDOWN_CYCLES; // improve web stability after clicking, do some loop() cycles without ledstrip update
 int allow_interrupts = 1; // no interrupts: web stability only with no interrupts, interrupts: noflicker
 /**
  * Default WiFi connection information.
@@ -67,7 +68,7 @@ String webString="";     // String to display (runtime modified)
 
 int ssr_cols = 5, ssr_rows = NUM_LEDS/5; // ssr display shown as table cols x rows
 
-uint8_t relay_state[NUM_LEDS];
+uint32_t led_color[NUM_LEDS];
 
 /**
  * Read WiFi connection information from file system.
@@ -145,7 +146,7 @@ bool loadConfig(String *ssid, String *pass)
   #if 0
   String ssr_state = content.substring(pos2 + le2);
   for(int i = 0; i < ssr_state.length() && i < NUM_LEDS; i++)
-    relay_state[i] = (ssr_state.substring(i,i+1) == "1" ? 1 : 0);
+    led_color[i] = (ssr_state.substring(i,i+1) == "1" ? 1 : 0);
   output_state();
   #endif
   ssid->trim();
@@ -208,12 +209,9 @@ void format_filesystem(void)
 void output_state()
 {
   for(int i = 0; i < strip.numPixels() && i < NUM_LEDS; i++)
-  {
-    uint32 c = relay_state[i] > 0 ? strip.Color(100,100,100) : strip.Color(0,0,0);
-    strip.setPixelColor(i, c);
-  }
-  // strip.show();
+    strip.setPixelColor(i, led_color[i]);
 }
+
 
 // greate html table
 // that displays ssr state
@@ -241,7 +239,9 @@ void create_message()
 "<meta http-equiv=\"pragma\" content=\"no-cache\" />"
 "</head>"
             "<a href=\"/\">refresh</a> "
-            "<a href=\"setup\">setup</a><p/>"
+            "<a href=\"setup\">setup</a> "
+            "<a href=\"cssButton\">cssButton</a> "
+            "<p/>"
             "<form action=\"/update\" method=\"get\" autocomplete=\"off\">";
   // this controls interrupts on/off
   message +=     "FLICKER "
@@ -260,14 +260,14 @@ void create_message()
     for(int x = 0; x < ssr_cols; x++)
     {
       String input_name = "name=\"check" + String(n) + "\"";
-      message += "<td bgcolor=\"" + String(relay_state[n] ? "#00FF00" : "#FF0000") + "\">"
-               + "<input type=\"checkbox\" " + input_name + String(relay_state[n] ? " checked" : "") + "> </input>"
+      message += "<td bgcolor=\"" + String(led_color[n] ? "#00FF00" : "#FF0000") + "\">"
+               + "<input type=\"checkbox\" " + input_name + String(led_color[n] ? " checked" : "") + "> </input>"
                + "<button type=\"submit\" name=\"button"
                + String(n) 
                + "\" value=\"" 
-               + String(relay_state[n] ? "0" : "1") 
+               + String(led_color[n] ? "0" : "1") 
                + "\">" // toggle when clicked 
-               + String(relay_state[n] ? "ON" : "OFF") // current state
+               + String(led_color[n] ? "ON" : "OFF") // current state
                + "</button>"
                  "</td>";
       n++; // increment ssr number
@@ -291,7 +291,7 @@ void handle_root()
 {
   create_message();
   server.send(200, "text/html", message);
-  countdown = 255;
+  countdown = COUNTDOWN_CYCLES;
 }
 
 void handle_setup() {
@@ -341,7 +341,7 @@ void handle_setup() {
     }
   }
   server.send(200, "text/html", webString);            // send to someones browser when asked
-  countdown = 255;
+  countdown = COUNTDOWN_CYCLES;
 }
 
 void handle_update() {
@@ -352,7 +352,7 @@ void handle_update() {
     {
       // assume all are off
       for(int j = 0; j < NUM_LEDS; j++)
-        relay_state[j] = 0;
+        led_color[j] = 0;
       // checkboxes on
       for(int j = 0; j < server.args(); j++)
       {
@@ -361,7 +361,7 @@ void handle_update() {
           int n = server.argName(j).substring(5).toInt();
           if(n >= 0 && n < NUM_LEDS)
             if(server.arg(j) == "on")
-              relay_state[n] = 1;
+              led_color[n] = strip.Color(100,0,0);
         }
       }
     }
@@ -375,7 +375,7 @@ void handle_update() {
     {
       int n = server.argName(i).substring(6).toInt();
       if(n >= 0 && n < NUM_LEDS)
-        relay_state[n] = server.arg(i).toInt();
+        led_color[n] = server.arg(i).toInt() ? strip.Color(0,100,0) : strip.Color(0,0,0);
     }
     if(server.argName(i).startsWith("interrupt_btn"))
       allow_interrupts = server.arg(i).toInt();
@@ -392,7 +392,32 @@ void handle_update() {
   };
   #endif
   server.send(200, "text/html", webString);
-  countdown = 255;
+  countdown = COUNTDOWN_CYCLES;
+}
+
+// fancy css color button example
+void handle_cssButton()
+{
+  const char * cssButton ="<!DOCTYPE html>"
+"<html>"
+"<head>"
+"<style>"
+".button {"
+"background-color: #990033;"
+"border: none;"
+"color: white;"
+"padding: 7px 15px;"
+"text-align: center;"
+"cursor: pointer;"
+"}"
+"</style>"
+"</head>"
+"<body>"
+"<input type=\"button\" class=\"button\" value=\"Input Button\">"
+"</body>"
+"</html>";
+
+  server.send(200, "text/html", cssButton);
 }
 
 void setup() {
@@ -527,6 +552,7 @@ void setup() {
   //server.on("/read", handle_read);
   server.on("/setup", handle_setup);
   server.on("/update", handle_update);
+  server.on("/cssButton", handle_cssButton);
   create_message();
   server.begin();
   Serial.println("HTTP server started");
@@ -540,12 +566,15 @@ void loop() {
   // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
   // Handle web server
   server.handleClient();
-  if(allow_interrupts == 0)
-    noInterrupts();
-  // digitalWrite(LED_BUILTIN, LOW); // LED ON
-  strip.show(); // it will disable interrupts
-  interrupts(); // re-enable interrupts
-  // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
+  if(countdown > 0)
+    countdown--;
+  else
+  {
+    if(allow_interrupts == 0)
+      noInterrupts();
+    strip.show(); // it will disable interrupts
+    interrupts(); // re-enable interrupts
+  }
 #if 0
   // Some example procedures showing how to display to the pixels:
   colorWipe(strip.Color(255,   0,   0), 40); // Red
