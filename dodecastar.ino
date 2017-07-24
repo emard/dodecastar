@@ -198,7 +198,7 @@ void format_filesystem(void)
 // output relay state to hardware pins
 void output_state()
 {
-  for(int i = 0; i < strip.numPixels(); i++)
+  for(int i = 0; i < strip.numPixels() && i < SSR_N; i++)
   {
     uint32 c = relay_state[i] > 0 ? strip.Color(100,100,100) : strip.Color(0,0,0);
     strip.setPixelColor(i, c);
