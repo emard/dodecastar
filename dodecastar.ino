@@ -518,13 +518,13 @@ void loop() {
   // Handle OTA server.
   ArduinoOTA.handle();
   #endif
-
-  strip.show();
-
+  // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
   // Handle web server
   server.handleClient();
-  yield();
-
+  digitalWrite(LED_BUILTIN, LOW); // LED ON
+  strip.show();
+  // yield();
+  digitalWrite(LED_BUILTIN, HIGH); // LED OFF
 #if 0
   // Some example procedures showing how to display to the pixels:
   colorWipe(strip.Color(255,   0,   0), 40); // Red
