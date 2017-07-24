@@ -32,6 +32,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 // (>1M flash required)
 #define USE_OTA 0
 
+#define SERIAL_VERBOSE 1
+
 // includes
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -70,6 +72,7 @@ String current_psk = ap_default_psk;
 String message = "";
 ESP8266WebServer server(80);
 String webString="";     // String to display (runtime modified)
+
 // too many controls will make web interface unstable
 // enable checkbox for leds
 #define WEB_TAB_CHECKBOX 0
@@ -80,6 +83,24 @@ int ssr_cols = 5, ssr_rows = NUM_LEDS/5; // ssr display shown as table cols x ro
 
 uint32_t led_color[NUM_LEDS];
 uint8_t led_on[NUM_LEDS]; // click for on/off
+
+int nextline(String content, int pos1)
+{
+  // Check if there is a second line available.
+  int16_t pos = content.substring(pos1).indexOf("\r\n");
+  uint16_t le = 2;
+  // check for linux and mac line ending.
+  if (pos == -1)
+  {
+    le = 1;
+    pos = content.substring(pos1).indexOf("\n");
+    if (pos == -1)
+      pos = content.substring(pos1).indexOf("\r");
+  }
+  if(pos == -1)
+    return -1;
+  return pos1+pos+le; // to start of next line  
+}
 
 /**
  * Read WiFi connection information from file system.
@@ -109,8 +130,8 @@ bool loadConfig(String *ssid, String *pass)
   content.trim();
 
   // Check if there is a second line available.
-  int8_t pos = content.indexOf("\r\n");
-  uint8_t le = 2;
+  int16_t pos = content.indexOf("\r\n");
+  uint16_t le = 2;
   // check for linux and mac line ending.
   if (pos == -1)
   {
@@ -130,8 +151,8 @@ bool loadConfig(String *ssid, String *pass)
 
   // check for the third line
   // Check if there is a second line available.
-  int8_t pos2 = content.indexOf("\r\n", pos + le + 1);
-  uint8_t le2 = 2;
+  int16_t pos2 = content.indexOf("\r\n", pos + le + 1);
+  uint16_t le2 = 2;
   // check for linux and mac line ending.
   if (pos2 == -1)
   {
@@ -154,22 +175,23 @@ bool loadConfig(String *ssid, String *pass)
   *pass = content.substring(pos + le, pos2);
 
   // get LED state
-  #if 0
-  String ssr_state = content.substring(pos2 + le2);
-  for(int i = 0; i < ssr_state.length() && i < NUM_LEDS; i++)
-    led_color[i] = (ssr_state.substring(i,i+1) == "1" ? 1 : 0);
+  pos = pos2 + le2;
+  for(int i = 0; i < NUM_LEDS && pos2 >= 0; i++)
+  {
+    pos2 = nextline(content, pos);
+    if(pos >= 0)
+      led_color[i] = content.substring(pos,pos2).toInt();
+    pos = pos2;
+  }
   output_state();
-  #endif
+
   ssid->trim();
   pass->trim();
 
 #ifdef SERIAL_VERBOSE
-  Serial.println("----- file content -----");
-  Serial.println(content);
-  Serial.println("----- file content -----");
+  Serial.println("----- connection -----");
   Serial.println("ssid: " + *ssid);
   Serial.println("psk:  " + *pass);
-  Serial.println("ssr:  " +  ssr_state);
 #endif
 
   return true;
@@ -197,8 +219,14 @@ bool saveConfig(String *ssid, String *pass)
   configFile.println(*ssid);
   configFile.println(*pass);
 
+  for(int i = 0; i < NUM_LEDS; i++)
+  {
+    configFile.println(led_color[i]);
+    // Serial.println(led_color[i]);
+  }
   configFile.close();
-  
+  Serial.print("config saved: ");
+  Serial.println(config_name);
   return true;
 } // saveConfig
 
@@ -264,11 +292,11 @@ void create_message()
       char hexcolor[10];
       sprintf(hexcolor, "#%06X", led_color[n]);
       message += "<td bgcolor=\"" + String(hexcolor) + "\">"
-#if WEB_TAB_CHECKBOX
+               #if WEB_TAB_CHECKBOX
                + "<input type=\"checkbox\" name=\"check" + String(n) + "\" " + String(led_on[n] ? " checked" : "") + "> </input>"
-#endif
+               #endif
                + "<input type=\"color\" name=\"color" + String(n) + "\" value=\"" + String(hexcolor) + "\"> </input>"
-#if WEB_TAB_BUTTONS
+               #if WEB_TAB_BUTTONS
                + "<button type=\"submit\" name=\"button"
                + String(n) 
                + "\" value=\"" 
@@ -276,7 +304,7 @@ void create_message()
                + "\">" // toggle when clicked 
                + String(led_on[n] ? "ON" : "OFF") // current state
                + "</button>"
-#endif
+               #endif
                  "</td>";
       n++; // increment ssr number
     }
@@ -538,7 +566,7 @@ void setup() {
   }
 
   // Load wifi connection information.
-  #if 0
+  #if 1
   if (! loadConfig(&station_ssid, &station_psk))
   {
     station_ssid = "";
@@ -555,7 +583,7 @@ void setup() {
 
       Serial.println("Second time failed. Cannot create filesystem.");
     }
-  }ž
+  }
   #else
     station_ssid = ap_default_ssid;
     station_psk = ap_default_psk;
@@ -569,7 +597,7 @@ void setup() {
     // ... Try to connect to WiFi station.
     WiFi.begin(station_ssid.c_str(), station_psk.c_str());
 
-    // ... Pritn new SSID
+    // ... Print new SSID
     Serial.print("new SSID: ");
     Serial.println(WiFi.SSID());
 
@@ -600,7 +628,7 @@ void setup() {
     // ... print IP Address
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-    colorWipe(strip.Color( 0,  50,   0), 40); // Dim Green init
+    digitalWrite(LED_BUILTIN, LOW); // "LOW" will turn LED on
   }
   else
   {
@@ -616,7 +644,7 @@ void setup() {
 
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
-    colorWipe(strip.Color(50,   0,   0), 40); // Dim Red init
+    digitalWrite(LED_BUILTIN, HIGH); // "HIGH" will turn LED off
   }
   current_ssid = station_ssid;
   current_psk = station_psk;
