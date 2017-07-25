@@ -70,6 +70,7 @@ const char* ap_default_psk = "GigabyteBrix"; ///< Default PSK.
 const char* config_name = "./dodecastar.conf";
 // set to 0 to start with default ssid/psk
 #define LOAD_CONFIG 1
+int ap_mode=0;
 
 String current_ssid = ap_default_ssid;
 String current_psk = ap_default_psk;
@@ -641,6 +642,9 @@ void program()
   // prog_random(program_speed, program_density, program_brightness);  
 }
 
+  String station_ssid = "";
+  String station_psk = "";
+
 void setup() {
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
   #if defined (__AVR_ATtiny85__)
@@ -648,8 +652,6 @@ void setup() {
   #endif
   // End of trinket special code
 
-  String station_ssid = "";
-  String station_psk = "";
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW); // "LOW" will turn LED on
@@ -750,6 +752,7 @@ void setup() {
     Serial.println(ap_default_ssid);
     Serial.println(ap_default_psk);
     // Go into software AP mode.
+    ap_mode=1;
     WiFi.mode(WIFI_AP);
 
     delay(10);
@@ -777,14 +780,15 @@ void setup() {
   create_message();
   server.begin();
   Serial.println("HTTP server started");
+  ESP.wdtEnable(1000);
 }
 
 void loop() {
+  static int connect_requested = 1;
   #if USE_OTA
   // Handle OTA server.
   ArduinoOTA.handle();
   #endif
-  // digitalWrite(LED_BUILTIN, HIGH); // LED OFF
   // Handle web server
   server.handleClient();
   if(countdown > 0)
@@ -797,7 +801,35 @@ void loop() {
       noInterrupts();
     strip.show(); // it will disable interrupts
     interrupts(); // re-enable interrupts
+    if(WiFi.status() == WL_CONNECTED)
+    {
+      digitalWrite(LED_BUILTIN, LOW); // LED ON
+      connect_requested = 0;
+    }
+    else
+    {
+      digitalWrite(LED_BUILTIN, HIGH); // LED OFF
+      // try to reconnect 
+      if(connect_requested == 0 && ap_mode == 0)
+      {
+        // force reset by hard watchdog
+        digitalWrite(0, HIGH);
+        digitalWrite(2, HIGH); // gpio 0,2,15 must be set before proper reboot
+        digitalWrite(15, LOW);
+        // because of WDT, it's not good idea to use gpio2 to drive LED strip...
+        ESP.reset();
+        ESP.wdtDisable();
+        while(1){}
+        #if 0
+        WiFi.disconnect();
+        WiFi.begin(station_ssid.c_str(), station_psk.c_str());
+        #endif
+        connect_requested = 1;
+      }
+    }
+
   }
+  ESP.wdtFeed();
 #if 0
   // Some example procedures showing how to display to the pixels:
   colorWipe(strip.Color(255,   0,   0), 40); // Red
