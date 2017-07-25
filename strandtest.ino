@@ -3,7 +3,7 @@
   #include <avr/power.h>
 #endif
 
-#define PIN 2 // pin 2 = NodeMCU pin D4
+#define PIN 14 // Arduino pin 14 = NodeMCU pin D5
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)

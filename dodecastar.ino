@@ -3,7 +3,7 @@
   #include <avr/power.h>
 #endif
 
-#define PIN 2
+#define PIN 14 // Arduino pin 14 = NodeMCU pin D5
 #define NUM_LEDS 50
 // web interface is stable up to 5 LEDs
 // for more, web interface will stop working after few clicks

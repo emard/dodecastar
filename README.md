@@ -55,8 +55,8 @@ needs different signal protocol.
 
 Various [Arduino](http://arduino.cc) compatible hardware 
 should work, even ATTINY85.
-I use ESP8266 NodeMCU 0.9 with GPIO2 connected to LED Din
-(GPIO2 is arduino Pin 2, on NodeMCU is labeled "D4").
+I use ESP8266 NodeMCU 0.9 with GPIO14 connected to LED Din
+(GPIO14 is arduino Pin 2, on NodeMCU is labeled "D5").
 Connect GND and 5V from the board to LED strip.
 No resistors or capacitors needed for NodeMCU.
 
@@ -74,10 +74,10 @@ and restart arduino.
 
 Open Examples->Adafruit NeoPixel->Strandtest.
 Edit source to set right PIN connected to "Din"
-(pin 2 in my case) and number of LEDs on the strip
+(pin 14 in my case) and number of LEDs on the strip
 (I have 50).
 
-    #define PIN 2 // Pin 2 is NodeMCU pin D4
+    #define PIN 14 // Arduino pin 14 = NodeMCU pin D5
     Adafruit_NeoPixel strip = Adafruit_NeoPixel(50, PIN, NEO_GRB + NEO_KHZ800);
 
 Compile and upload, whole LED string will light up and
