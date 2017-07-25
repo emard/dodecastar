@@ -58,6 +58,8 @@ int program_control = 1; // blink leds using program control
 int program_speed = 5; // how fast
 int program_density = 2; // how dense does the color changes between pixels
 int program_brightness = 50; // intensity of the LEDs
+uint32_t selected_color = strip.Color(100,100,100); // medium white
+uint8_t use_color = 0;
 
 /**
  * Default WiFi connection information.
@@ -80,7 +82,10 @@ String webString="";     // String to display (runtime modified)
 // enable checkbox for leds
 #define WEB_TAB_CHECKBOX 0
 // enable on-off buttons for leds
-#define WEB_TAB_BUTTONS 0
+#define WEB_TAB_BUTTON 1
+// enable individual color selectors
+#define WEB_TAB_COLOR 0
+
 
 int ssr_cols = 5, ssr_rows = NUM_LEDS/5; // ssr display shown as table cols x rows
 
@@ -183,7 +188,10 @@ bool loadConfig(String *ssid, String *pass)
   {
     pos2 = nextline(content, pos);
     if(pos >= 0)
+    {
       led_color[i] = content.substring(pos,pos2).toInt();
+      led_on[i] = led_color[i] ? 1 : 0;
+    }
     pos = pos2;
   }
   output_state();
@@ -224,7 +232,7 @@ bool saveConfig(String *ssid, String *pass)
 
   for(int i = 0; i < NUM_LEDS; i++)
   {
-    configFile.println(led_color[i]);
+    configFile.println(led_on[i] ? led_color[i] : 0);
     // Serial.println(led_color[i]);
   }
   configFile.close();
@@ -251,7 +259,7 @@ void format_filesystem(void)
 void output_state()
 {
   for(int i = 0; i < strip.numPixels() && i < NUM_LEDS; i++)
-    strip.setPixelColor(i, led_color[i]);
+    strip.setPixelColor(i, led_on[i] ? led_color[i] : 0);
 }
 
 
@@ -285,6 +293,13 @@ void create_message()
             "<a href=\"cssButton\">cssButton</a> "
             "<p/>"
             "<form action=\"/update\" method=\"get\" autocomplete=\"off\">";
+  char hexcolor[10];
+  sprintf(hexcolor, "#%06X", selected_color);
+  // color for LED on/off
+  message +=     "COLOR "
+                 "<input type=\"color\" name=\"selected_color" + String(n) + "\" value=\"" + String(hexcolor) + "\"> </input>"
+                 "<input type=\"checkbox\" name=\"use_color\" " + String(use_color ? " checked" : "") + "> </input>"
+                 "<p/>";
   // this controls each individual LED on the strip
   message += "<table>";
   for(int y = 0; y < ssr_rows; y++)
@@ -292,14 +307,15 @@ void create_message()
     message += "<tr>";
     for(int x = 0; x < ssr_cols; x++)
     {
-      char hexcolor[10];
       sprintf(hexcolor, "#%06X", led_color[n]);
       message += "<td bgcolor=\"" + String(hexcolor) + "\">"
                #if WEB_TAB_CHECKBOX
                + "<input type=\"checkbox\" name=\"check" + String(n) + "\" " + String(led_on[n] ? " checked" : "") + "> </input>"
                #endif
+               #if WEB_TAB_COLOR
                + "<input type=\"color\" name=\"color" + String(n) + "\" value=\"" + String(hexcolor) + "\"> </input>"
-               #if WEB_TAB_BUTTONS
+               #endif
+               #if WEB_TAB_BUTTON
                + "<button type=\"submit\" name=\"button"
                + String(n) 
                + "\" value=\"" 
@@ -415,15 +431,35 @@ void handle_setup() {
 }
 
 void handle_update() {
+  // first obtain selected color
+  char hexcolor[10];
+  uint32_t bincolor;
+  int color_need = 2; // helps earlier exit
+  for(int i = 0; i < server.args() && color_need > 0; i++)
+  {
+    if(server.argName(i).startsWith("selected_color"))
+    {
+      server.arg(i).substring(1).toCharArray(hexcolor, 7);
+      bincolor = strtol(hexcolor, NULL, 16);
+      selected_color = strip.Color((bincolor >> 16) & 255, (bincolor >> 8) & 255, bincolor & 255);
+      color_need--;
+    }
+    if(server.argName(i).startsWith("use_color"))
+    {
+      use_color = (server.arg(i) == "on") ? 1 : 0;
+      color_need--;
+    }
+  }
   // Apply or Save button
   for(int i = 0; i < server.args(); i++)
   {
     if(server.argName(i) == "apply" || server.argName(i) == "save")
     {
-      // assume all are off
+      #if WEB_TAB_CHECKBOX
+      // assume all LEDs are off
       for(int j = 0; j < NUM_LEDS; j++)
         led_on[j] = 0;
-      // checkboxes on
+      #endif
       for(int j = 0; j < server.args(); j++)
       {
         #if WEB_TAB_CHECKBOX
@@ -435,17 +471,18 @@ void handle_update() {
               led_on[n] = 1;
         }
         #endif
+        #if WEB_TAB_COLOR
         if(server.argName(j).startsWith("color"))
         {
           int n = server.argName(j).substring(5).toInt();
           if(n >= 0 && n < NUM_LEDS)
           {
-            char hexcolor[10];
             server.arg(j).substring(1).toCharArray(hexcolor, 7);
-            uint32_t bincolor = strtol(hexcolor, NULL, 16);
+            bincolor = strtol(hexcolor, NULL, 16);
             led_color[n] = strip.Color((bincolor >> 16) & 255, (bincolor >> 8) & 255, bincolor & 255);
           }
         }
+        #endif
       }
     }
     if(server.argName(i) == "save")
@@ -454,12 +491,20 @@ void handle_update() {
   // ON/OFF buttons
   for(int i = 0; i < server.args(); i++)
   {
-    #if WEB_TAB_BUTTONS
+    #if WEB_TAB_BUTTON
     if(server.argName(i).startsWith("button"))
     {
       int n = server.argName(i).substring(6).toInt();
       if(n >= 0 && n < NUM_LEDS)
-        led_on[n] = server.arg(i).toInt() ? 1 : 0;
+      {
+        uint8_t led_on_off = server.arg(i).toInt() ? 1 : 0;
+        if(led_on[n] != led_on_off) // state changed
+        {
+          led_on[n] = led_on_off;
+          if(use_color)
+            led_color[n] = selected_color;
+        }
+      }
     }
     #endif
     if(server.argName(i).startsWith("interrupt_btn"))
