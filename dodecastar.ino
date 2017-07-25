@@ -636,9 +636,9 @@ void prog_random(uint8_t speed, uint8_t density, uint8_t bright)
 
 void program()
 {
-  // prog_rainbow(program_speed, program_density, program_brightness);
+  prog_rainbow(program_speed, program_density, program_brightness);
   // prog_moving_rainbow(program_speed, program_density, program_brightness);
-  prog_color_wipe(program_speed, program_density, program_brightness);
+  // prog_color_wipe(program_speed, program_density, program_brightness);
   // prog_random(program_speed, program_density, program_brightness);  
 }
 
@@ -646,12 +646,18 @@ void program()
 // don't use pins 0,2,15 for anything
 void proper_reboot_pins()
 {
+  #if 1
   pinMode(0, OUTPUT);
   digitalWrite(0, HIGH);
   pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH); // gpio 0,2,15 must be set before proper reboot
+  digitalWrite(2, HIGH);
   pinMode(15, OUTPUT);
   digitalWrite(15, LOW);
+  #else
+  pinMode(0, INPUT);
+  pinMode(2, INPUT);
+  pinMode(15, INPUT);
+  #endif
 }
 
 void setup() {
@@ -668,7 +674,7 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW); // "LOW" will turn LED on
-  proper_reboot_pins();
+  // proper_reboot_pins();
 
   Serial.begin(115200);
   delay(100);
@@ -794,7 +800,8 @@ void setup() {
   create_message();
   server.begin();
   Serial.println("HTTP server started");
-  ESP.wdtEnable(1000);
+  // ESP.wdtEnable(1000);
+  ESP.wdtDisable(); // we will feed watchdog in loop()
 }
 
 void loop() {
@@ -818,7 +825,7 @@ void loop() {
     if(WiFi.status() == WL_CONNECTED)
     {
       digitalWrite(LED_BUILTIN, LOW); // LED ON
-      connect_requested = 0;
+      connect_requested = 0; // if we loose connection, we have to reboot
     }
     else
     {
@@ -827,10 +834,13 @@ void loop() {
       if(connect_requested == 0 && ap_mode == 0)
       {
         proper_reboot_pins();
-        // either reset in 6 seconds by hard watchdog
-        ESP.wdtDisable();
-        // or explicitely reset
+        // explicitely reset
+        // warning - reset won't work after sketch is uploaded.
+        // but after power off/on it should work
         ESP.reset();
+        // or reset in 6 seconds by hard watchdog
+        // some problem in watchdog reset...
+        ESP.wdtDisable();
         while(1){} // wait for watchdog to reset
       }
     }
