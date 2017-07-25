@@ -32,7 +32,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 // (>1M flash required)
 #define USE_OTA 0
 
-#define SERIAL_VERBOSE 1
+#define SERIAL_VERBOSE 0
+
 
 // includes
 #include <ESP8266WiFi.h>
@@ -53,7 +54,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 #define COUNTDOWN_CYCLES 10
 int countdown = COUNTDOWN_CYCLES; // improve web stability after clicking, do some loop() cycles without ledstrip update
 int allow_interrupts = 1; // no interrupts: web stability only with no interrupts, interrupts: noflicker
-int program_control = 0; // blink leds using program control
+int program_control = 1; // blink leds using program control
 int program_speed = 5; // how fast
 int program_density = 2; // how dense does the color changes between pixels
 int program_brightness = 50; // intensity of the LEDs
@@ -65,6 +66,8 @@ const char* ap_default_ssid = "ra"; ///< Default SSID.
 const char* ap_default_psk = "GigabyteBrix"; ///< Default PSK.
 //const char* ap_default_psk = ""; ///< Default PSK.
 const char* config_name = "./dodecastar.conf";
+// set to 0 to start with default ssid/psk
+#define LOAD_CONFIG 1
 
 String current_ssid = ap_default_ssid;
 String current_psk = ap_default_psk;
@@ -566,7 +569,7 @@ void setup() {
   }
 
   // Load wifi connection information.
-  #if 1
+  #if LOAD_CONFIG
   if (! loadConfig(&station_ssid, &station_psk))
   {
     station_ssid = "";
