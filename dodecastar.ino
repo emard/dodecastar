@@ -514,9 +514,9 @@ void handle_cssButton()
   server.send(200, "text/html", cssButton);
 }
 
-void program()
+void prog_rainbow(uint8_t speed, uint8_t density, uint8_t bright)
 {
-  uint32_t t = millis() >> (10-program_speed); // time
+  uint32_t t = millis() >> (10-speed); // time
   static uint32_t old_t = 0;
   static uint8_t p = 0;
   
@@ -525,9 +525,39 @@ void program()
     old_t = t;
     for(int i = 0; i < NUM_LEDS; i++)
     {
-      strip.setPixelColor(i, Wheel_bright( ( (i<<(program_density-1)) - t ) & 255, program_brightness) );
+      strip.setPixelColor(i, Wheel_bright( ( (i<<(density-1)) - t ) & 255, bright) );
     }
   }
+}
+
+void prog_random(uint8_t speed, uint8_t density, uint8_t bright)
+{
+  uint32_t t = millis() >> (10-speed); // time
+  static uint32_t old_t = 0;
+  static uint8_t p = 0;
+  
+  if(t != old_t)
+  {
+    old_t = t;
+    uint8_t i = rand() % NUM_LEDS;
+    uint8_t r = rand() % bright;
+    uint8_t g = rand() % bright;
+    uint8_t b = rand() % bright;
+    // one LED ON
+    strip.setPixelColor(i, strip.Color(r,g,b));
+    // multiple LEDs OFF
+    for(int i = 1<<(10-density); i > 1; i--)
+    {
+      uint8_t j = rand() % NUM_LEDS;
+      strip.setPixelColor(j, 0);
+    }
+  }
+}
+
+void program()
+{
+  // prog_rainbow(program_speed, program_density, program_brightness);
+  prog_random(program_speed, program_density, program_brightness);  
 }
 
 void setup() {
