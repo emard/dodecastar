@@ -642,10 +642,23 @@ void program()
   // prog_random(program_speed, program_density, program_brightness);  
 }
 
+// set pins important for proper reboot 
+// don't use pins 0,2,15 for anything
+void proper_reboot_pins()
+{
+  pinMode(0, OUTPUT);
+  digitalWrite(0, HIGH);
+  pinMode(2, OUTPUT);
+  digitalWrite(2, HIGH); // gpio 0,2,15 must be set before proper reboot
+  pinMode(15, OUTPUT);
+  digitalWrite(15, LOW);
+}
+
+void setup() {
   String station_ssid = "";
   String station_psk = "";
 
-void setup() {
+
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
   #if defined (__AVR_ATtiny85__)
     if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
@@ -655,6 +668,7 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW); // "LOW" will turn LED on
+  proper_reboot_pins();
 
   Serial.begin(115200);
   delay(100);
@@ -809,22 +823,15 @@ void loop() {
     else
     {
       digitalWrite(LED_BUILTIN, HIGH); // LED OFF
-      // try to reconnect 
+      // we were connected -> reboot to reconnect
       if(connect_requested == 0 && ap_mode == 0)
       {
-        // force reset by hard watchdog
-        digitalWrite(0, HIGH);
-        digitalWrite(2, HIGH); // gpio 0,2,15 must be set before proper reboot
-        digitalWrite(15, LOW);
-        // because of WDT, it's not good idea to use gpio2 to drive LED strip...
-        ESP.reset();
+        proper_reboot_pins();
+        // either reset in 6 seconds by hard watchdog
         ESP.wdtDisable();
-        while(1){}
-        #if 0
-        WiFi.disconnect();
-        WiFi.begin(station_ssid.c_str(), station_psk.c_str());
-        #endif
-        connect_requested = 1;
+        // or explicitely reset
+        ESP.reset();
+        while(1){} // wait for watchdog to reset
       }
     }
 
