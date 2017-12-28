@@ -116,7 +116,7 @@ module dodecahedron(height)
 ** ih: interior dodecastar lamp hole factor (0.7) relative to height
 ** id: interior dodecastar cut depth (0.15)
 ** extup: screw hole reinforcement height factor (0.25) relative to height
-** interface 0-none, 1-screw hole, 2-ledstrip pass-thru
+** interface 0-none, 1-screw hole, 2-ledstrip pass-thru, 3-ledstrip half with 2 screws
 interior dodecastar : ih = 0.7, id = 0.15, extup = 0.25
 interior simple dodecahedron : ih = 0.5, id = 0, extup = 0.25
 */
@@ -238,7 +238,7 @@ interface=3)
                  translate([0,0,screw_height])
                    cylinder(d1=screw_hole_d,d2=screw_head_d,h=screw_head_h, $fn=20, center=false);
                  translate([0,0,screw_height+screw_head_h])
-                   cylinder(d=screw_head_d,h=screw_length,$fn=20,center=false);
+                   cylinder(d=screw_head_d,h=height,$fn=20,center=false);
                }
              }
         }
@@ -247,9 +247,18 @@ interface=3)
 }
 
 /* for 3d printing */
+/* minimal size (cca 0.5x normal size) that fits ledstrip */
 if(1)
     reflector(height=27, screw_head_h=0.001, screw_length=5, interface=3);
-    // reflector(height=32, interface=3);
+
+/* normal size */
+if(0)
+    reflector(height=43, screw_pos=43/3,screw_head_h=0.001,screw_length=5,interface=3);
+
+/* 2x the normal size */
+if(0)
+    reflector(height=86, screw_pos=86/3,screw_head_h=0.001,screw_length=5,interface=3);
+
 
 /* for blender export */
 /*
