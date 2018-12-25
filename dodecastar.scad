@@ -249,7 +249,7 @@ interface=3)
 /* for 3d printing */
 /* minimal size (cca 0.5x normal size) that fits ledstrip */
 if(1)
-    reflector(height=27, screw_head_h=0.001, screw_length=5, interface=3);
+    reflector(height=27, screw_head_h=0.001, screw_length=5, cable_h=2.2, interface=3);
 
 /* normal size */
 if(0)
@@ -259,6 +259,40 @@ if(0)
 if(0)
     reflector(height=86, screw_pos=86/3,screw_head_h=0.001,screw_length=5,interface=3);
 
+/* 2x the normal (big star) vertical */
+if(0)
+    reflector(height=86, screw_pos=86/3,screw_head_h=0.001,screw_length=5,interface=0);
+/* holder for the star of 2x normal size */
+if(0)
+{
+    h_hold_star=0.1; // top straight height holding the star
+    h_holder=81; // narrowing height
+    n_hold=5; // number of angles
+    thick_holder=2;
+    d2_holder=50; // inner small diameter
+    d1_holder=68; // inner big diameter
+    translate([0,0,70])
+    rotate([0,0,-18])
+    difference()
+    {
+      union()
+      {
+        translate([0,0,-h_holder/2-h_hold_star/2])
+          cylinder(d=d1_holder+2*thick_holder,h=h_hold_star,$fn=n_hold,center=true);
+        cylinder(d1=d1_holder+2*thick_holder, d2=d2_holder+2*thick_holder,h=h_holder,$fn=n_hold,center=true);
+      }
+      translate([0,0,-h_holder/2-h_hold_star/2])
+          cylinder(d=d1_holder,h=h_hold_star+0.1,$fn=n_hold,center=true);
+      cylinder(d1=d1_holder, d2=d2_holder,h=h_holder+0.1,$fn=n_hold,center=true);
+      for(j=[-3:2])
+      for(i=[0:n_hold-1])
+          translate([0,0,j*15])
+          rotate([0,0,(i+j/4)*360/n_hold])
+            rotate([0,90,0])
+              cylinder(d=14-j,h=100,$fn=6,center=true);
+
+    }
+}
 
 /* for blender export */
 /*
