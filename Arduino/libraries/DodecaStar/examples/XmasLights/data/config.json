@@ -1,0 +1,14 @@
+{
+  "ssid":"ra",
+  "pass":"GigabyteBrix",
+  "ip":[192,168,4,1],
+  "netmask":[255,255,255,0],
+  "gateway":[192,168,4,254],
+  "dns":[192,168,4,254],
+  "dhcp":1,
+  "ntp":"es.pool.ntp.org",
+  "NTPperiod":5,
+  "timeZone":10,
+  "daylight":1,
+  "deviceName":"12*"
+}

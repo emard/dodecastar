@@ -1,0 +1,14 @@
+{
+  "dodecastar_mode":1,
+  "pixel_count":200,
+  "pixel0":[1,"#FF0000"],
+  "pixel1":[1,"#00FF00"],
+  "pixel2":[1,"#0000FF"],
+  "pixel3":[0,"#00FFFF"],
+  "pixel4":[0,"#FF00FF"],
+  "pixel5":[0,"#FFFF00"],
+  "animate_count":1,
+  "animate0":[1,"fade",1000,5,3,"#FF00FF"],
+  "animate1":[2,"rainbow",1000,6,2,"#FFFF00"],
+  "animate2":[3,"chase",250,7,1,"#00FFFF"]
+}

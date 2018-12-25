@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<a href="index.html">◄</a>&nbsp;&nbsp;<strong>Animate mode</strong>
+	<hr/>
+	<form action="" method="get">
+	  <table border="0"  cellspacing="0" cellpadding="1" >
+	    <tr>
+	      <td>
+	        Order
+	      </td>
+	      <td>
+	        Effect
+	      </td>
+	      <td>
+				  Duration [ms]
+	      </td>
+	      <td>
+				  Speed
+	      </td>
+	      <td>
+				  Density
+	      </td>
+	      <td>
+				  Color
+	      </td>
+	    </tr>
+	    <tr>
+				<td>
+					<input type="text" id="order0" name="order0" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<select id="effect0" name="effect0" value="">
+						<option value="chase">Chase</option>
+						<option value="rainbow">Rainbow</option>
+						<option value="fade">Fade</option>
+					</select>
+        </td>
+				<td>
+					<input type="text" id="duration0" name="duration0" size="7" maxlength="7" value=""/>
+        </td>
+				<td>
+					<input type="text" id="speed0" name="speed0" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="text" id="density0" name="density0" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="color" id="color0" name="color0" size="7" maxlength="7" value=""/>
+        </td>
+			</tr>
+	    <tr>
+				<td>
+					<input type="text" id="order1" name="order1" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<select id="effect1" name="effect1" value="">
+						<option value="chase">Chase</option>
+						<option value="rainbow">Rainbow</option>
+						<option value="fade">Fade</option>
+					</select>
+        </td>
+				<td>
+					<input type="text" id="duration1" name="duration1" size="7"	maxlength="7" value=""/>
+        </td>
+				<td>
+					<input type="text" id="speed1" name="speed1" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="text" id="density1" name="density1" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="color" id="color1" name="color1" size="3" maxlength="3" value=""/>
+        </td>
+			</tr>
+	    <tr>
+				<td>
+					<input type="text" id="order2" name="order2" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<select id="effect2" name="effect2" value="">
+						<option value="chase">Chase</option>
+						<option value="rainbow">Rainbow</option>
+						<option value="fade">Fade</option>
+					</select>
+        </td>
+				<td>
+					<input type="text" id="duration2" name="duration2" size="7" maxlength="7" value=""/>
+        </td>
+				<td>
+					<input type="text" id="speed2" name="speed2" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="text" id="density2" name="density2" size="3" maxlength="3" value=""/>
+        </td>
+				<td>
+					<input type="color" id="color2" name="color2" size="3" maxlength="3" value=""/>
+        </td>
+			</tr>
+    </table>
+	<hr/>
+		<table border="0"  cellspacing="0" cellpadding="3" >
+			<tr>
+				<td align="right">Speed</td>
+				<td>
+				<input type="text" id="speed" name="speed" size="3" maxlength="1" value=""></td>
+			</tr>
+			<tr>
+				<td align="right">Repeat</td>
+				<td>
+					<select id="repeat" name="repeat">
+						<option value="cycle">Cycle</option>
+						<option value="shuffle">Shuffle</option>
+						<option value="random">Random</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center">
+				  <input type="submit" style="width:100px" class="btn btn--m" id="Apply" name="Apply" value="">
+					<input type="submit" style="width:100px" class="btn btn--m" id="Save" name="Save" value="">
+				</td>
+			</tr>
+		</table>
+	</form>
+	<script>
+		window.onload = function ()
+		{
+			load("style.css","css", function()
+			{
+				load("microajax.js","js", function()
+				{
+					setValues("/mode_animate");
+				});
+			});
+		}
+		function load(e,t,n) {
+			if("js"==t) {
+				var a=document.createElement("script");
+				a.src=e,
+				a.type="text/javascript",
+				a.async=!1,
+				a.onload=function(){n()},
+				document.getElementsByTagName("head")[0].appendChild(a)
+			}
+			else if("css"==t) {
+				var a=document.createElement("link");
+				a.href=e,
+				a.rel="stylesheet",
+				a.type="text/css",
+				a.async=!1,
+				a.onload=function(){n()},
+				document.getElementsByTagName("head")[0].appendChild(a)
+			}
+		}
+	</script>
